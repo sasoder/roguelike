@@ -12,6 +12,10 @@ class Tile {
     getItem() {
         return this.item
     }
+
+    setItem(newItem) {
+        this.item = newItem;
+    }
 }
 
 module.exports = Tile

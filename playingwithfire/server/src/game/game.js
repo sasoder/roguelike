@@ -26,6 +26,7 @@ class Game {
                 
             }
         }
+        this.populateTilesWithBarrels()
         console.log("these are the tiles:\n", this.tiles);
     }
 
@@ -36,7 +37,7 @@ class Game {
         }
 
         // Create player and place in empty tile
-        let tile = this.findEmptyTile();
+        let tile = this.findEmptyTile(true);
         this.players[id] = new Player(id, tile.x, tile.y);
         console.log("created new player:", id, tile.x, tile.y);
     }
@@ -46,10 +47,26 @@ class Game {
         console.log("removed player:", id);
     }
     
-    findEmptyTile() {
+    findEmptyTile(onlyEdgeTiles) {
         let empties = this.tiles.reduce((acc, row) => acc.concat(row))
-                                .filter(tile => tile.isEmpty());
+                                .filter(tile => tile.isEmpty()
+                                        && onlyEdgeTiles ? this.isNextToEdge(tile) : true); // also check that the tile is next to the edge
         return empties[Math.floor(Math.random()*empties.length)];
+    }
+
+    isNextToEdge(item) {
+        return item.x == width-1 || item.x == 1 || item.y == height-1 || item.y == 1
+    }
+
+    populateTilesWithBarrels() {
+        for (let y = 2; y < height - 1; y++) {
+            for (let x = 2; x < width - 1; x++) {
+                // checking if there's already something there (for example if we hardcode a level with walls spread out)
+                if(this.tiles[x][y].isEmpty()) {
+                    this.tiles[x][y].setItem("barrel")
+                }
+            }
+        }
     }
 }
 
