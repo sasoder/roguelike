@@ -46,6 +46,42 @@ class Game {
         this.players[id] = null;
         console.log("removed player:", id);
     }
+
+    movePlayer(id, direction) {
+        let player = this.players[id];
+        let newCoords = {x: player.x, y: player.y}
+        if (direction === 'up') newCoords.y += 1
+        else if (direction === 'left') newCoords.x -= 1
+        else if (direction === 'right') newCoords.x += 1
+        else newCoords.y -= 1
+        
+        // Check if a player is obstructing movement
+        let playerInTheWay = this.players.some(p => {
+            if (p.x === newCoords.x && p.y === newCoords.y) {
+                // someone is in the way!
+                return true
+            }
+        });
+        if(playerInTheWay) {
+            return
+        }
+
+        let tile = this.tiles[newCoords.y][newCoords.x]
+        if (tile.isEmpty()) {
+            this.this.makeMove(player, newCoords)   
+        } 
+        else if(tile.getItem() == typeof(Powerup)) {
+            player.addPowerup(this.getItem().getType())
+            this.makeMove(player, newCoords)
+        }
+    }
+
+    makeMove(player, newCoords) {
+        player.x = newCoords.x
+        player.y = newCoords.y
+        // emit change
+        
+    }
     
     findEmptyTile(onlyEdgeTiles) {
         let empties = this.tiles.reduce((acc, row) => acc.concat(row))
@@ -55,15 +91,15 @@ class Game {
     }
 
     isNextToEdge(item) {
-        return item.x == width-1 || item.x == 1 || item.y == height-1 || item.y == 1
+        return item.x == this.width-1 || item.x == 1 || item.y == this.height-1 || item.y == 1
     }
 
     populateTilesWithBarrels() {
-        for (let y = 2; y < height - 1; y++) {
-            for (let x = 2; x < width - 1; x++) {
+        for (let y = 2; y < this.height - 1; y++) {
+            for (let x = 2; x < this.width - 1; x++) {
                 // checking if there's already something there (for example if we hardcode a level with walls spread out)
-                if(this.tiles[x][y].isEmpty()) {
-                    this.tiles[x][y].setItem("barrel")
+                if(this.tiles[y][x].isEmpty()) {
+                    this.tiles[y][x].setItem("barrel")
                 }
             }
         }

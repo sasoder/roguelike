@@ -13,5 +13,9 @@ exports.init = ({ io }) => {
         socket.on('disconnect', () => {
             game.removePlayer(socket.id);
         });
+
+        socket.on('move', (direction) => {
+            game.movePlayer(socket.id, direction);
+        });
     }) 
 }

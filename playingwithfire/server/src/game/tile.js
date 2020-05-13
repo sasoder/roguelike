@@ -6,7 +6,7 @@ class Tile {
     }
 
     isEmpty() {
-        return this.item == "empty"
+        return this.item == 'empty'
     }
 
     getItem() {
