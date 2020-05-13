@@ -53,6 +53,7 @@ app.use(
 // This is a middleware that parses the body of the request into a javascript object.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, '../../client/src')));
 /* ------------------------------------------------------------ */
 
 
@@ -62,9 +63,7 @@ sockets.init({ io });
 /* ------------------------------------------------------------ */
 
 app.get('/', (req, res) => {
-  // res.sendFile(__dirname + '/../../client/src/index.html');
-  res.sendFile(path.resolve(__dirname + '/../../client/src/index.html'));
-  //res.sendFile(path.join(__dirname, '../../client/src', 'index.html'))
+  res.sendFile(path.join(__dirname, '../../client/src', 'index.html'))
 });
 
 // Start server
