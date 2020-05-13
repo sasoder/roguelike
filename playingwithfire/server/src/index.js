@@ -55,26 +55,17 @@ app.use(express.urlencoded({ extended: true }));
 /* ------------------------------------------------------------ */
 
 
-/* ---------------------- Setup models and socket ------------- */
-// Initialize model
-// const model = require('./model.js');
-// model.init({ io });
-
-// Handle connected socket.io sockets
-io.on('connection', (socket) => {
-    console.log(`New socket id=${socket.id}`);
-    socket.on('disconnect', () => {
-      console.log('user disconnected');
-    });
-});
+/* ------------- SET-UP SOCKETS -------------------------------- */
+const sockets = require("./sockets.js");
+sockets.init({ io });
 /* ------------------------------------------------------------ */
-
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
+  
 });
 
 // Start server
 httpServer.listen(port, () => {
-    console.log(`Listening on https://localhost:${port}`);
-  });
+  console.log(`Listening on https://localhost:${port}`);
+});
