@@ -1,11 +1,14 @@
 const Bomb = require('./bomb');
+
+
+
 class Player {
-  constructor(id, x, y) {
+  constructor(id, x, y, color) {
     this.id = id;
     this.x = x;
     this.y = y;
-    // default player can only place one bomb at a time
-    this.totalBombs = 1;
+    this.color = color;
+    this.totalBombs = 1; // default player can only place one bomb at a time
     this.amtBombs = 1;
     this.speed = 1; // moves per second
     this.bombStrength = 2;
@@ -13,7 +16,11 @@ class Player {
   }
 
   getInfo() {
-    return { x: this.x, y: this.y }
+    return {
+      x: this.x,
+      y: this.y,
+      color: this.color
+    };
   }
 
   addBomb() {
@@ -25,7 +32,7 @@ class Player {
 
   removeBomb() {
     this.amtBombs -= 1;
-    if(this.amtBombs < 0) {
+    if (this.amtBombs < 0) {
       this.amtBombs = 0;
     }
   }
@@ -45,6 +52,8 @@ class Player {
     }
   }
 }
+
+
 
 
 module.exports = Player;

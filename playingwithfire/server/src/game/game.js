@@ -5,6 +5,8 @@ const Bomb = require('./bomb');
 
 // TODO uhhhh
 const sockets = require("./../sockets.js");
+const playerColors = ["aliceblue", "purple", "yellow", "blue", "green", "cyan"]
+let nextPlayerId = 0
 
 class Game {
   constructor() {
@@ -19,7 +21,7 @@ class Game {
     for (let y = 0; y < this.height; y += 1) {
       this.tiles[y] = [];
       for (let x = 0; x < this.width; x += 1) {
-        if (x === 0 || x === this.width || y === 0 || y === this.height) {
+        if (x === 0 || x === this.width - 1 || y === 0 || y === this.height - 1) {
           this.tiles[y][x] = new Tile('wall', x, y);
         } else {
           this.tiles[y][x] = new Tile('empty', x, y);
@@ -30,10 +32,13 @@ class Game {
   }
 
   getGameState() {
+    let playersInfo = {}
+    Object.entries(this.players).forEach(([_, player]) => {
+      playersInfo[player.id] = player.getInfo();
+    })
+
     return {
-      players: Object.entries(this.players).map(([_, p]) => {
-        return p.getInfo();
-      }),
+      players: playersInfo,
       tiles: this.tiles,
     }
   }
@@ -46,11 +51,21 @@ class Game {
 
     // Create player and place in empty tile
     const tile = this.findEmptyTile(true);
-    this.players[id] = new Player(id, tile.x, tile.y);
+    this.players[id] = new Player(this.getNextId, tile.x, tile.y, this.getRandomColor());
     console.log('created new player:', id, tile.x, tile.y);
 
     // emit new player to others
 
+  }
+
+  get getNextId(){
+    let nextId = nextPlayerId;
+    nextPlayerId +=1;
+    return nextId;
+  }
+
+  getRandomColor() {
+    return playerColors[Math.floor(Math.random() * playerColors.length)]
   }
 
   removePlayer(id) {
@@ -123,7 +138,7 @@ class Game {
 
   findEmptyTile(onlyEdgeTiles) {
     const empties = this.tiles.reduce((acc, row) => acc.concat(row))
-      .filter((tile) => (tile.isEmpty() && onlyEdgeTiles ? this.isNextToEdge(tile) : true));
+      .filter((tile) => (tile.isEmpty() && (onlyEdgeTiles ? this.isNextToEdge(tile) : true)));
     return empties[Math.floor(Math.random() * empties.length)];
   }
 
@@ -132,8 +147,8 @@ class Game {
   }
 
   populateTilesWithBarrels() {
-    for (let y = 2; y < this.height - 1; y += 1) {
-      for (let x = 2; x < this.width - 1; x += 1) {
+    for (let y = 2; y < this.height - 2; y += 1) {
+      for (let x = 2; x < this.width - 2; x += 1) {
         // checking if there's already something there
         // (for example if we hardcode a level with walls spread out)
         if (this.tiles[y][x].isEmpty()) {
