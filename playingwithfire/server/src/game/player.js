@@ -6,8 +6,9 @@ class Player {
         // default player can only place one bomb at a time
         this.totalBombs = 1
         this.amtBombs = 1
-        this.speed = 1
+        this.speed = 1 // moves per second
         this.bombStrength = 2
+        this.canMove = true;
     }
 
     addBomb() {
