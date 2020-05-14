@@ -2,14 +2,12 @@ exports.io = undefined; // Will be initialized in the exports.init function
 const Game = require("./game/game");
 let game = new Game();
 
-const buckets = {};
-const BUCKETSIZE = 10;
 
 exports.init = ({ io }) => {
     exports.io = io;
 
     exports.io.on("connection", (socket) => {
-        newConnection(socket.id);
+        newConnection(socket);
 
         socket.on('disconnect', () => {
             game.removePlayer(socket.id);
@@ -19,11 +17,18 @@ exports.init = ({ io }) => {
             console.log(`move action ${direction}`);
             game.movePlayer(socket.id, direction);
         });
-    }) 
+
+        socket.on('bomb', () => {
+            console.log("bomb has been placed omg");
+            game.placeBomb(socket.id);
+        })
+    })
 }
 
-async function newConnection(sessionId) {
-    console.log(`New socket id=${sessionId}`);
-    game.addPlayer(sessionId);
-    buckets[sessionId] = 10;
+async function newConnection(socket) {
+    console.log(`New socket id=${socket.id}`);
+    game.addPlayer(socket.id);
+    // emit gamestate to this socket
+    let gameState = game.getGameState();
+    socket.emit('game_state', gameState);
 }

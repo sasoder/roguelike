@@ -1,21 +1,34 @@
 class Tile {
-    constructor(item, x ,y) {
-        this.x = x;
-        this.y = y;
-        this.item = item
-    }
+  constructor(item, x, y) {
+    this.x = x;
+    this.y = y;
+    this.item = item;
+    this.deadly = false;
+    this.explosionOwnerId = null;
+  }
 
-    isEmpty() {
-        return this.item == 'empty'
-    }
+  makeDeadly(owner) {
+    this.deadly = true;
+    this.explosionOwner = owner;
+  }
 
-    getItem() {
-        return this.item
+  stopDeadly(ownerId) {
+    if (ownerId === this.explosionOwnerId) {
+      this.deadly = false;
     }
+  }
 
-    setItem(newItem) {
-        this.item = newItem;
-    }
+  isEmpty() {
+    return this.item === 'empty';
+  }
+
+  getItem() {
+    return this.item;
+  }
+
+  setItem(newItem) {
+    this.item = newItem;
+  }
 }
 
-module.exports = Tile
+module.exports = Tile;

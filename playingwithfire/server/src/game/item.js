@@ -1,6 +1,8 @@
 class Item {
-    constructor(x, y) {
-        this.x = x
-        this.y = y
-    }
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
 }
+
+module.exports = Item;

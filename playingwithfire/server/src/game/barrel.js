@@ -1,13 +1,13 @@
-const Powerup = require("./powerup")
+const Powerup = require('./powerup');
+const Item = require('./item');
 
 class Barrel extends Item {
-    constructor(x, y) {
-        super(x, y)
-    }
+  constructor(x, y) {
+    super(x, y);
+  }
 
-    destroy() {
-        let powerup = Powerup(this.x, this.y)
-        return powerup
-    }
-
+  destroy() {
+    const powerup = Powerup(this.x, this.y);
+    return powerup;
+  }
 }
