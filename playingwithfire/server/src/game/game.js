@@ -31,8 +31,8 @@ class Game {
 
   getGameState() {
     return {
-      players: Object.entires(this.players).forEach((_, p) => {
-        p.getPlayerInfo();
+      players: Object.entries(this.players).map(([_, p]) => {
+        return p.getInfo();
       }),
       tiles: this.tiles,
     }

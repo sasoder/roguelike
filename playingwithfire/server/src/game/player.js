@@ -12,7 +12,7 @@ class Player {
     this.canMove = true;
   }
 
-  getPlayerInfo() {
+  getInfo() {
     return { x: this.x, y: this.y }
   }
 
