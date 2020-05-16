@@ -45,8 +45,8 @@ socket.on("remove_player", (player) => {
 socket.on("explosion", (explCoords) => {
   explCoords.forEach((coord) => {
     let tile = tiles[coord.y][coord.x]
-    tile.isDeadly = true
-    tile.item = "empty"
+    tile.deadly = true
+    // tile.item = "empty"
     drawTile(tile)
   })
 })
@@ -54,16 +54,37 @@ socket.on("explosion", (explCoords) => {
 socket.on("made_not_deadly", (explCoords) => {
   explCoords.forEach((coord) => {
     let tile = tiles[coord.y][coord.x]
-    tile.isDeadly = false
+    tile.deadly = false
     drawTile(tile)
   })
 })
+
+function startGame() {
+  socket.emit("start_game")
+}
+
+// socket.on("player_dead", (player) => {
+//   players[player.id].isAlive = false
+// })
 
 socket.on("powerup", (type, x ,y) => {
   console.log("new powerup at", x ,y);
   let tile = tiles[y][x];
   tile.item = type;
   drawTile(tile);
+})
+
+socket.on("take_powerup", (x, y) => {
+  let tile = tiles[y][x];
+  tile.item = "empty";
+  // TODO: potential datarace
+})
+socket.on("game_over", (playerId) => {
+  if(playerId === -1) {
+    alert("It's a draw!!")
+  } else {
+    alert("Player with id " + playerId + " won the game!!!");
+  }
 })
 
 function drawGameState() {
@@ -83,54 +104,29 @@ function drawGameState() {
 
 function drawTile(tile) {
   let tileType = tile.item;
-  let shape;
 
-  switch (tileType) {
-    case "empty":
-      shape = "box";
-      ctx.fillStyle = "black";
-      break;
-    case "barrel":
-      shape = "box";
-      ctx.fillStyle = "brown";
-      break;
-    case "wall":
-      shape = "box";
-      ctx.fillStyle = "gray";
-      break;
-    case 0:
-      shape = 'circle';
-      ctx.fillStyle = "green";
-      break;
-    case 1:
-      shape ="circle"
-      ctx.fillStyle = "blue";
-      break;
-    case 2:
-      shape = "circle"
-      ctx.fillStyle = "orange";
-      break;
-    default:
-      console.log("uhoh unrecogniable tile", tileType);
-      break;
-      
-  }
-
-  if (shape === "box") {
-    if (tile.isDeadly) {
-      ctx.fillStyle = "red";
-    }
-    ctx.fillRect(tile.x * tileWidth, tile.y * tileHeight, tileWidth, tileHeight); 
-  }
-  else if (shape === "circle") {
-    console.log('drawing item at', tile.x, tile.y);
+  // draw bg
+  if (tileType === 'empty' || [0, 1, 2].includes(tileType)) ctx.fillStyle = "black";
+  else if (tileType === 'barrel') ctx.fillStyle = "brown";
+  else if (tileType === 'wall') ctx.fillStyle = "grey";
+  // draw deadly :)
+  if (tile.deadly) ctx.fillStyle = "red";
+  ctx.fillRect(tile.x * tileWidth, tile.y * tileHeight, tileWidth, tileHeight); 
+  
+  // draw powerup
+  if ([0,1,2].includes(tileType)) {
+    console.log('drawing powerup', tileType);
+    if (tileType === 0) ctx.fillStyle = "green"
+    if (tileType === 1) ctx.fillStyle = "blue"
+    if (tileType === 2) ctx.fillStyle = "orange"
     ctx.beginPath();
     ctx.arc((tile.x * tileWidth) + (tileWidth / 2), (tile.y * tileHeight) + (tileHeight / 2), tileWidth / 5, 0, 2 * Math.PI);
     ctx.fill();
-  } 
+  }
 }
 
 function drawPlayer(player) {
+  if (!player.isAlive) return;
     ctx.fillStyle = player.color
     ctx.beginPath();
     ctx.arc((player.x * tileWidth) + (tileWidth / 2), (player.y * tileHeight) + (tileHeight / 2), tileWidth / 3, 0, 2 * Math.PI);

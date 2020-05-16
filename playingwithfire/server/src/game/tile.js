@@ -4,16 +4,17 @@ class Tile {
     this.y = y;
     this.item = item;
     this.deadly = false;
-    this.explosionOwnerId = null;
+    this.explosionId = null;
+    this.possiblePowerups = [0, 1, 2]
   }
 
-  makeDeadly(owner) {
+  makeDeadly(id) {
     this.deadly = true;
-    this.explosionOwnerId = owner;
+    this.explosionId = id;
   }
 
-  stopDeadly(ownerId) {
-    if (ownerId === this.explosionOwnerId) {
+  stopDeadly(id) {
+    if (id === this.explosionId) {
       this.deadly = false;
       return true;
     } else {
@@ -34,7 +35,11 @@ class Tile {
   }
 
   setRandomPowerup() {
-    this.item = Math.floor(Math.random() * 3);
+    if(Math.random() < 1 / 4) {
+      this.item = Math.floor(Math.random() * 3);
+    } else {
+      this.item = "empty";
+    }
   }
 }
 

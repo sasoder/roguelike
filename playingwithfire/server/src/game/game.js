@@ -13,7 +13,8 @@ class Game {
     this.tiles = [];
     this.width = 15;
     this.height = 15;
-    this.initGame();
+    this.initGame()
+    this.isActive = false;
   }
 
   initGame() {
@@ -30,10 +31,14 @@ class Game {
     this.populateTilesWithBarrels();
   }
 
+  startGame() {
+    this.isActive = true
+  }
+
   getGameState() {
     let playersInfo = {}
     Object.entries(this.players).forEach(([_, player]) => {
-      playersInfo[player.id] = player.getInfo();
+      if (player.isAlive) playersInfo[player.id] = player.getInfo();
     })
 
     return {
@@ -43,10 +48,12 @@ class Game {
   }
 
   addPlayer(id) {
-    // Remove player if they already exist
-    if (this.players[id]) {
-      this.removePlayer(id);
-    }
+    console.log(this.isActive)
+    if(this.isActive) return;
+    // // Remove player if they already exist
+    // if (this.players[id]) {
+    //   this.removePlayer(id);
+    // }
 
     // Create player and place in empty tile
     const tile = this.findEmptyTile(true);
@@ -68,14 +75,24 @@ class Game {
   }
 
   removePlayer(id) {
+    if(this.players[id] === undefined) return;
+    this.players[id].die();
     sockets.removePlayer(this.players[id].getInfo())
+
+    // Check if game over
+    let alivePlayers = Object.entries(this.players).filter(([_, p]) => p.isAlive);
+    if (alivePlayers.length === 1) {
+      sockets.gameOver(alivePlayers[0][1].id);
+      return;
+    }
     delete this.players.id;
   }
 
   movePlayer(id, direction) {
+    if(!this.isActive) return;
     // Check if player exists
     const player = this.players[id];
-    if (player === null) return;
+    if (player === undefined || !player.isAlive ) return;
 
     // Check if player has the speed to move
     if (player.canMove) {
@@ -95,9 +112,8 @@ class Game {
     else newCoords.y += 1;
 
     // Check if another player is obstructing movement
-    const playerInTheWay = Object.entries(this.players).some((_, p) => {
-      if (p.x === newCoords.x && p.y === newCoords.y) {
-        // someone is in the way!
+    const playerInTheWay = Object.entries(this.players).some(([_, p]) => {
+      if (p.isAlive && (p.x === newCoords.x && p.y === newCoords.y)) {
         return true;
       }
       return false;
@@ -113,28 +129,32 @@ class Game {
       sockets.movePlayer(player.id, newCoords.x, newCoords.y);
       player.x = newCoords.x;
       player.y = newCoords.y;
+      if (tile.deadly) this.removePlayer(id);
     } 
     else if ([0, 1, 2].includes(tile.getItem())) {
       player.addPowerup(tile.getItem());
       tile.setItem("empty");
+      sockets.takePowerup(newCoords.x, newCoords.y);
       sockets.movePlayer(player.id, newCoords.x, newCoords.y);
       player.x = newCoords.x;
       player.y = newCoords.y;
-    }
-    else {
-      console.log(player.id, "tries to move to a bad tile", tile.getItem());
-    }
+      if (tile.deadly) this.removePlayer(id);
+    }    
   }
 
   placeBomb(id) {
+    if (!this.isActive) return;
+
     let player = this.players[id]
+    if (!player.isAlive) return;
+
     if (player.amtBombs > 0) {
       player.removeBomb();
       let b = new Bomb(this.players[id]);
       setTimeout(() => {
-        b.explode(this.tiles);
+        b.explode(this.tiles, this.players);
         player.addBomb();
-      }, 1000);
+      }, b.timeTilExplosion * 1000);
     } else {
       console.log("not enough bombs :(");
     }
