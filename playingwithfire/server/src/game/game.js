@@ -17,6 +17,7 @@ class Game {
     this.isActive = false;
   }
 
+  // sets up the base of the game with gameboard
   initGame() {
     for (let y = 0; y < this.height; y += 1) {
       this.tiles[y] = [];
@@ -35,6 +36,7 @@ class Game {
     this.isActive = true
   }
 
+  // returns info about the players and tiles in the current game
   getGameState() {
     let playersInfo = {}
     Object.entries(this.players).forEach(([_, player]) => {
@@ -47,6 +49,7 @@ class Game {
     }
   }
 
+  // adds player based on their socket-id
   addPlayer(id) {
     console.log(this.isActive)
     if(this.isActive) return;
@@ -64,16 +67,19 @@ class Game {
     sockets.addPlayer(this.players[id].getInfo());
   }
 
+  // increments the public id of the player that they are identified by from the clients
   get getNextId(){
     let nextId = nextPlayerId;
     nextPlayerId +=1;
     return nextId;
   }
 
+  // returns a random color for players
   getRandomColor() {
     return playerColors[Math.floor(Math.random() * playerColors.length)]
   }
 
+  // removes the player (if it exists) from the current game (only called from sockets.js on disconnect)
   removePlayer(id) {
     if(this.players[id] === undefined) return;
     this.players[id].die();
@@ -88,6 +94,7 @@ class Game {
     delete this.players.id;
   }
 
+  // moves the player based on input from the client
   movePlayer(id, direction) {
     if(!this.isActive) return;
     // Check if player exists
@@ -130,18 +137,18 @@ class Game {
       player.x = newCoords.x;
       player.y = newCoords.y;
       if (tile.deadly) this.removePlayer(id);
-    } 
-    else if ([0, 1, 2].includes(tile.getItem())) {
+    } else if ([0, 1, 2].includes(tile.getItem())) { // it's a powerup
       player.addPowerup(tile.getItem());
       tile.setItem("empty");
-      sockets.takePowerup(newCoords.x, newCoords.y);
+      sockets.updateTile('empty', newCoords.x, newCoords.y);
       sockets.movePlayer(player.id, newCoords.x, newCoords.y);
       player.x = newCoords.x;
       player.y = newCoords.y;
       if (tile.deadly) this.removePlayer(id);
-    }    
+    }
   }
 
+  // places a bomb by the player with the id id based on input from the client
   placeBomb(id) {
     if (!this.isActive) return;
 
@@ -151,6 +158,8 @@ class Game {
     if (player.amtBombs > 0) {
       player.removeBomb();
       let b = new Bomb(this.players[id]);
+      this.tiles[player.y][player.x].setItem("bomb")
+      sockets.updateTile('bomb', player.x, player.y);
       setTimeout(() => {
         b.explode(this.tiles, this.players);
         player.addBomb();
@@ -160,12 +169,14 @@ class Game {
     }
   }
 
+  // returns one empty tile, can be supplemented with a bool onlyEdgeTiles if we only want edge tiles or not
   findEmptyTile(onlyEdgeTiles) {
     const empties = this.tiles.reduce((acc, row) => acc.concat(row))
       .filter((tile) => (tile.isEmpty() && (onlyEdgeTiles ? this.isNextToEdge(tile) : true) && !this.isPlayerHere(tile)));
     return empties[Math.floor(Math.random() * empties.length)];
   }
 
+  // returns true if the item checked is next to the edge
   isNextToEdge(item) {
     return item.x === this.width - 2 || item.x === 1 || item.y === this.height - 2 || item.y === 1;
   }
@@ -177,6 +188,7 @@ class Game {
     })
   }
 
+  // add barrels to the gameboard deterministically
   populateTilesWithBarrels() {
     for (let y = 2; y < this.height - 2; y += 1) {
       for (let x = 2; x < this.width - 2; x += 1) {

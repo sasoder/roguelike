@@ -1,12 +1,10 @@
 const Bomb = require('./bomb');
+const Item = require('./item');
 
-
-
-class Player {
+class Player extends Item{
   constructor(id, x, y, color) {
+    super(x, y)
     this.id = id;
-    this.x = x;
-    this.y = y;
     this.color = color;
     this.totalBombs = 1; // default player can only place one bomb at a time
     this.amtBombs = 1;
@@ -17,6 +15,7 @@ class Player {
     this.bombCounter = 0;
   }
 
+  // returns a simplified version of player for socket emits
   getInfo() {
     return {
       id: this.id,
@@ -27,6 +26,7 @@ class Player {
     };
   }
 
+  // adds bomb to player (called when bomb is exploded)
   addBomb() {
     this.amtBombs += 1;
     if (this.amtBombs > this.totalBombs) {
@@ -34,6 +34,7 @@ class Player {
     }
   }
 
+  // removes bomb from player inventory (called when bomb is placed)
   removeBomb() {
     this.bombCounter++
     this.amtBombs -= 1;
@@ -42,10 +43,12 @@ class Player {
     }
   }
 
+  // bye bye player :(
   die() {
     this.isAlive = false;
   }
 
+  // adds powerup to player based on its type
   addPowerup(type) {
     switch (type) {
       case 0:

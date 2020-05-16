@@ -15,9 +15,7 @@ const expressSession = require('express-session');
 
 const session = expressSession({
   secret: 'Super secret! Shh! Don\'t tell anyone...',
-  // TODO: Necessary to change?
   resave: true,
-  // TODO: Necessary to change?
   saveUninitialized: true,
   // "This is typically used in conjuction with short, non-session-length maxAge values to provide a quick
   // timeout of the session data with reduced potentional of it occurring during on going server interactions.""
@@ -30,6 +28,7 @@ io.use(socketIOSession(session, {
   autoSave: true,
   saveUninitialized: true,
 }));
+// TODO what does the above do?
 /* ----------------------------------------------------------- */
 /* -------------------- Setup Logging --------------------- */
 const betterLogging = require("better-logging");

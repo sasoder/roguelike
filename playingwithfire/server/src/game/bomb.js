@@ -5,18 +5,26 @@ class Bomb extends Item {
   constructor(owner) {
     super(owner.x, owner.y);
     this.id = "" + owner.id + owner.bombCounter;
-    this.timeTilExplosion = 5;
+    this.timeTilExplosion = 3;
     this.strength = owner.bombStrength;
   }
 
+  // explodes the bomb and checks whether players/barrels have been hit and takes appropriate action
   explode(gameBoard, players) {
     const explCoords = this.findExplosionTiles(gameBoard);
     explCoords.forEach((coord) => {
       let tile = gameBoard[coord.y][coord.x];
+      // if there's a barrel on the explosion coordinates, spawn a powerup there (maybe)
       if (tile.getItem() === "barrel") {
         tile.setRandomPowerup();
-        sockets.powerup(tile.getItem(), tile.x, tile.y);
-      } else {
+        sockets.updateTile(tile.getItem(), tile.x, tile.y);
+      } 
+      else if (tile.getItem() === 'bomb' && tile.explosionId === this.id) {
+        tile.setItem('empty');
+        sockets.updateTile('empty', tile.x ,tile.y);
+      }
+      else {
+        // otherwise we check if an explosion matched a player. If so, kill them
         let deadPlayers = Object.entries(players).filter(([_, p]) => p.isAlive && (p.x === coord.x && p.y === coord.y))
         deadPlayers.forEach(([_, player]) => {
           console.log("player", player.id, "DIED")
@@ -24,6 +32,7 @@ class Bomb extends Item {
         })
       }
     });
+    // emit the explosion coordinates to clients
     sockets.explosion(explCoords);
     
     // Check if game over
@@ -45,12 +54,14 @@ class Bomb extends Item {
         } else {
         }
       });
+      // emit that the explosion tiles are no longer dangerous
       sockets.madeNotDeadly(madeNotDeadly);
 
     }, 1000);
   }
 
 
+  // returns an array of coordinates that the explosion reached
   findExplosionTiles(gameBoard) {
     const explCoords = [{ x: this.x, y: this.y }];
     gameBoard[this.y][this.x].makeDeadly(this.id);
@@ -115,10 +126,6 @@ class Bomb extends Item {
       }
     }
     return explCoords;
-  }
-
-  increaseStrength() {
-    this.strength += 1;
   }
 }
 

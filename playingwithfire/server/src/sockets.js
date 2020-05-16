@@ -4,6 +4,7 @@ let game = new Game();
 let sockets = []
 
 
+// setup different actions to take based on client emits
 exports.init = ({ io }) => {
     exports.io = io;
 
@@ -14,22 +15,17 @@ exports.init = ({ io }) => {
             removeConnection(socket);
         });
 
-        socket.on('move', (direction) => {
-            game.movePlayer(socket.id, direction);
-        });
-
-        socket.on('bomb', () => {
-            game.placeBomb(socket.id);
-        })
-
-        socket.on('start_game', () => {
-            console.log("HBABJAKJBA")
-            sockets.forEach((id) => {
-                game.addPlayer(id);
-            });
-            game.startGame();
-            let gameState = game.getGameState();
-            exports.io.emit("game_state", gameState);
+        socket.on("message", (type, payload) => {
+            if (type === "move") game.movePlayer(socket.id, payload);
+            else if (type === "bomb") game.placeBomb(socket.id);
+            else if (type === "start_game") {
+                sockets.forEach((id) => {
+                    game.addPlayer(id);
+                });
+                game.startGame();
+                let gameState = game.getGameState();
+                exports.io.send("game_state", JSON.stringify(gameState));
+            }
         })
     })
 }
@@ -38,8 +34,7 @@ function newConnection(socket) {
     console.log(`New socket id=${socket.id}`);
     let gameState = game.getGameState();
     // emit gamestate to this socket
-    socket.emit('game_state', gameState);
-    //game.addPlayer(socket.id);
+    socket.send('game_state', JSON.stringify(gameState));
     sockets.push(socket.id);
 }
 
@@ -48,38 +43,47 @@ function removeConnection(socket) {
     sockets = sockets.filter(s => s !== socket.id);
 }
 
+
+// emits from the game that update the gamescreen for the clients
 exports.removePlayer = (player) => {
-    exports.io.emit("remove_player", player)
+    exports.io.send("remove_player", JSON.stringify(player));
 }
 
 exports.addPlayer = (player) => {
-    exports.io.emit("new_player", player);
+    exports.io.send("new_player", JSON.stringify(player))
 }
 
 exports.movePlayer = (id, newX, newY) => {
-    exports.io.emit("player_move", id, newX, newY)
+    let payload = JSON.stringify({
+        id: id,
+        x: newX,
+        y: newY,
+    });
+    exports.io.send("player_move", payload);
 }
 
 exports.explosion = (explCoords) => {
-    exports.io.emit("explosion", explCoords)
+    exports.io.send("explosion", JSON.stringify(explCoords))
 }
 
 exports.madeNotDeadly = (explCoords) => {
-    console.log("socky")
-    exports.io.emit("made_not_deadly", explCoords)
-}
-
-exports.powerup = (type, x ,y) => {
-    console.log("emit powerup", type)
-    exports.io.emit("powerup", type, x, y)
-}
-
-exports.takePowerup = (x, y) => {
-    console.log("powerup taken")
-    exports.io.emit("take_powerup", x, y)
+    exports.io.send("made_not_deadly", JSON.stringify(explCoords))
 }
 
 exports.gameOver = (playerId) => {
-    exports.io.emit("game_over", playerId);
-    game = new Game();
+    if(game.isActive) {
+        game.isActive = false
+        exports.io.send("game_over", playerId);
+        game = new Game()
+    }
+}
+
+// for updating a tile with a specific item
+exports.updateTile = (item, x, y) => {
+    let payload = JSON.stringify({
+        item,
+        x,
+        y
+    })
+    exports.io.send("update_tile", payload)
 }
