@@ -14,7 +14,6 @@ exports.init = ({ io }) => {
         });
 
         socket.on('move', (direction) => {
-            console.log(`move action ${direction}`);
             game.movePlayer(socket.id, direction);
         });
 

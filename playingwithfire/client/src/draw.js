@@ -23,7 +23,6 @@ socket.on("game_state", (initState) => {
 });
 
 socket.on("player_move", (id, x, y) => {
-  console.log("moving time", id)
   let player = players[id]
   movePlayer(player, x, y)
   // draw the updated player anew
@@ -44,7 +43,6 @@ socket.on("remove_player", (player) => {
 })
 
 socket.on("explosion", (explCoords) => {
-  console.log("bruh")
   explCoords.forEach((coord) => {
     let tile = tiles[coord.y][coord.x]
     tile.isDeadly = true
@@ -54,17 +52,16 @@ socket.on("explosion", (explCoords) => {
 })
 
 socket.on("made_not_deadly", (explCoords) => {
-  console.log("made: ", explCoords)
   explCoords.forEach((coord) => {
     let tile = tiles[coord.y][coord.x]
-    console.log("falsing")
     tile.isDeadly = false
     drawTile(tile)
   })
 })
 
 socket.on("powerup", (type, x ,y) => {
-  let tile = tiles[y][x]
+  console.log("new powerup at", x ,y);
+  let tile = tiles[y][x];
   tile.item = type;
   drawTile(tile);
 })
@@ -101,15 +98,15 @@ function drawTile(tile) {
       shape = "box";
       ctx.fillStyle = "gray";
       break;
-    case "0":
+    case 0:
       shape = 'circle';
       ctx.fillStyle = "green";
       break;
-    case "1":
+    case 1:
       shape ="circle"
       ctx.fillStyle = "blue";
       break;
-    case "2":
+    case 2:
       shape = "circle"
       ctx.fillStyle = "orange";
       break;
@@ -126,6 +123,7 @@ function drawTile(tile) {
     ctx.fillRect(tile.x * tileWidth, tile.y * tileHeight, tileWidth, tileHeight); 
   }
   else if (shape === "circle") {
+    console.log('drawing item at', tile.x, tile.y);
     ctx.beginPath();
     ctx.arc((tile.x * tileWidth) + (tileWidth / 2), (tile.y * tileHeight) + (tileHeight / 2), tileWidth / 5, 0, 2 * Math.PI);
     ctx.fill();

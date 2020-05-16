@@ -10,7 +10,6 @@ class Bomb extends Item {
   }
 
   explode(gameBoard) {
-    console.log(this);
     const explCoords = this.findExplosionTiles(gameBoard);
     explCoords.forEach((coord) => {
       let tile = gameBoard[coord.y][coord.x];
@@ -18,13 +17,12 @@ class Bomb extends Item {
         tile.setRandomPowerup();
         sockets.powerup(tile.getItem(), tile.x, tile.y);
       }
-      else {
+      // TODO: don't think we want this (destroys items)
+      /* else {
         gameBoard[coord.y][coord.x].setItem("empty");
-      }
+      } */
     });
-    console.log('woah explosion!!!');
     sockets.explosion(explCoords);
-    console.log(explCoords)
 
 
     // clean up explosions
@@ -33,14 +31,10 @@ class Bomb extends Item {
       explCoords.forEach((coord) => {
         if(gameBoard[coord.y][coord.x].stopDeadly(this.ownerId)) {
           madeNotDeadly.push({x: coord.x, y: coord.y})
-          console.log("made not deadly")
         } else {
-          console.log("nop")
         }
       });
       console.log(madeNotDeadly)
-      console.log('woah explosion STOPPP');
-      // TODO: emit explosion stop
       sockets.madeNotDeadly(madeNotDeadly);
 
     }, 1000);

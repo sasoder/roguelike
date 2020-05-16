@@ -84,7 +84,6 @@ class Game {
         player.canMove = true;
       }, 1000 / player.speed);
     } else {
-      console.log('player cant move yet!');
       return;
     }
 
@@ -121,6 +120,9 @@ class Game {
       sockets.movePlayer(player.id, newCoords.x, newCoords.y);
       player.x = newCoords.x;
       player.y = newCoords.y;
+    }
+    else {
+      console.log(player.id, "tries to move to a bad tile", tile.getItem());
     }
   }
 

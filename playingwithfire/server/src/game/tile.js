@@ -34,7 +34,7 @@ class Tile {
   }
 
   setRandomPowerup() {
-    return Math.floor(Math.random() * 3);
+    this.item = Math.floor(Math.random() * 3);
   }
 }
 
