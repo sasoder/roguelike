@@ -9,22 +9,36 @@ class Bomb extends Item {
     this.strength = owner.bombStrength;
   }
 
-  explode(gameBoard, players) {
+  explode(gameBoard) {
     console.log(this);
-    const explCoords = this.findExplosionTiles(gameBoard, players);
+    const explCoords = this.findExplosionTiles(gameBoard);
+    explCoords.forEach((coord) => {
+      let tile = gameBoard[coord.y][coord.x];
+      if (tile.getItem() === "barrel") {
+        tile.setRandomPowerup();
+        sockets.powerup(tile.getItem(), tile.x, tile.y);
+      }
+      else {
+        gameBoard[coord.y][coord.x].setItem("empty");
+      }
+    });
     console.log('woah explosion!!!');
-    // TODO: emit explosion
     sockets.explosion(explCoords);
     console.log(explCoords)
+
+
     // clean up explosions
-    let madeNotDeadly = {}
     setTimeout(() => {
+      let madeNotDeadly = []//explCoords.filter((coord) => {gameBoard[coord.y][coord.x].stopDeadly(this.ownerId)});
       explCoords.forEach((coord) => {
         if(gameBoard[coord.y][coord.x].stopDeadly(this.ownerId)) {
           madeNotDeadly.push({x: coord.x, y: coord.y})
           console.log("made not deadly")
+        } else {
+          console.log("nop")
         }
       });
+      console.log(madeNotDeadly)
       console.log('woah explosion STOPPP');
       // TODO: emit explosion stop
       sockets.madeNotDeadly(madeNotDeadly);
@@ -34,16 +48,18 @@ class Bomb extends Item {
   }
 
 
-  findExplosionTiles(gameBoard, players) {
+  findExplosionTiles(gameBoard) {
     const explCoords = [{ x: this.x, y: this.y }];
+    gameBoard[this.y][this.x].makeDeadly(this.ownerId);
 
     // GOING LEFT FROM THE BOMB ORIGIN
     for (let y = this.y - 1; y >= Math.max(this.y - this.strength, 0); y -= 1) {
       const tile = gameBoard[y][this.x];
       if (tile.isEmpty()) {
-        tile.makeDeadly(this.owner);
+        tile.makeDeadly(this.ownerId);
         explCoords.push({ x: tile.x, y: tile.y });
       } else if (tile.getItem() === 'barrel') {
+        tile.makeDeadly(this.ownerId);
         explCoords.push({ x: tile.x, y: tile.y });
         break;
       } else if (tile.getItem() === 'wall') {
@@ -55,8 +71,10 @@ class Bomb extends Item {
     for (let y = this.y + 1; y <= Math.min(this.y + this.strength, gameBoard.length); y += 1) {
       const tile = gameBoard[y][this.x];
       if (tile.isEmpty()) {
+        tile.makeDeadly(this.ownerId);
         explCoords.push({ x: tile.x, y: tile.y });
       } else if (tile.getItem() === 'barrel') {
+        tile.makeDeadly(this.ownerId);
         explCoords.push({ x: tile.x, y: tile.y });
         break;
       } else if (tile.getItem() === 'wall') {
@@ -68,8 +86,10 @@ class Bomb extends Item {
     for (let x = this.x - 1; x >= Math.max(this.x - this.strength, 0); x -= 1) {
       const tile = gameBoard[this.y][x];
       if (tile.isEmpty()) {
+        tile.makeDeadly(this.ownerId);
         explCoords.push({ x: tile.x, y: tile.y });
       } else if (tile.getItem() === 'barrel') {
+        tile.makeDeadly(this.ownerId);
         explCoords.push({x: tile.x, y: tile.y});
         break;
       } else if (tile.getItem() === 'wall') {
@@ -81,8 +101,10 @@ class Bomb extends Item {
     for (let x = this.x + 1; x <= Math.min(this.x + this.strength, gameBoard[0].length); x += 1) {
       const tile = gameBoard[this.y][x];
       if (tile.isEmpty()) {
+        tile.makeDeadly(this.ownerId);
         explCoords.push({ x: tile.x, y: tile.y });
       } else if (tile.getItem() === 'barrel') {
+        tile.makeDeadly(this.ownerId);
         explCoords.push({ x: tile.x, y: tile.y });
         break;
       } else if (tile.getItem() === 'wall') {

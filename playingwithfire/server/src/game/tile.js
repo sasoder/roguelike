@@ -9,7 +9,7 @@ class Tile {
 
   makeDeadly(owner) {
     this.deadly = true;
-    this.explosionOwner = owner;
+    this.explosionOwnerId = owner;
   }
 
   stopDeadly(ownerId) {
@@ -31,6 +31,10 @@ class Tile {
 
   setItem(newItem) {
     this.item = newItem;
+  }
+
+  setRandomPowerup() {
+    return Math.floor(Math.random() * 3);
   }
 }
 

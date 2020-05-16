@@ -27,12 +27,17 @@ exports.init = ({ io }) => {
 
 async function newConnection(socket) {
     console.log(`New socket id=${socket.id}`);
-    game.addPlayer(socket.id);
-    // emit gamestate to this socket
     let gameState = game.getGameState();
+    // emit gamestate to this socket
     socket.emit('game_state', gameState);
+    game.addPlayer(socket.id);
 }
-
+exports.removePlayer = (player) => {
+    exports.io.emit("remove_player", player)
+}
+exports.addPlayer = (player) => {
+    exports.io.emit("new_player", player);
+}
 exports.movePlayer = (id, newX, newY) => {
     exports.io.emit("player_move", id, newX, newY)
 }
@@ -42,4 +47,8 @@ exports.explosion = (explCoords) => {
 exports.madeNotDeadly = (explCoords) => {
     console.log("socky")
     exports.io.emit("made_not_deadly", explCoords)
+}
+exports.powerup = (type, x ,y) => {
+    console.log("emit powerup", type)
+    exports.io.emit("powerup", type, x, y)
 }

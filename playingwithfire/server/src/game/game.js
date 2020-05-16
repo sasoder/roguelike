@@ -1,7 +1,7 @@
 const Tile = require('./tile');
 const Player = require('./player');
-const Powerup = require('./powerup');
 const Bomb = require('./bomb');
+//const Barrel = require('./barrel');
 
 const sockets = require("./../sockets.js");
 const playerColors = ["aliceblue", "purple", "yellow", "blue", "green", "cyan"]
@@ -54,7 +54,7 @@ class Game {
     console.log('created new player:', id, tile.x, tile.y);
 
     // emit new player to others
-
+    sockets.addPlayer(this.players[id].getInfo());
   }
 
   get getNextId(){
@@ -68,8 +68,8 @@ class Game {
   }
 
   removePlayer(id) {
+    sockets.removePlayer(this.players[id].getInfo())
     delete this.players.id;
-    console.log('removed player:', id);
   }
 
   movePlayer(id, direction) {
@@ -111,14 +111,16 @@ class Game {
     const tile = this.tiles[newCoords.y][newCoords.x];
     if (tile.isEmpty()) {
       // emitting before change occurs so we have a reference to the previous tile for drawing purposes
-      sockets.movePlayer(player.id, newCoords.x, newCoords.y)
+      sockets.movePlayer(player.id, newCoords.x, newCoords.y);
       player.x = newCoords.x;
       player.y = newCoords.y;
-    } else if (tile.getItem() instanceof Powerup) {
-      player.addPowerup(this.getItem().getType());
+    } 
+    else if ([0, 1, 2].includes(tile.getItem())) {
+      player.addPowerup(tile.getItem());
+      tile.setItem("empty");
+      sockets.movePlayer(player.id, newCoords.x, newCoords.y);
       player.x = newCoords.x;
       player.y = newCoords.y;
-      // TODO: emit
     }
   }
 
@@ -128,7 +130,7 @@ class Game {
       player.removeBomb();
       let b = new Bomb(this.players[id]);
       setTimeout(() => {
-        b.explode(this.tiles, this.players);
+        b.explode(this.tiles);
         player.addBomb();
       }, 1000);
     } else {

@@ -23,31 +23,50 @@ socket.on("game_state", (initState) => {
 });
 
 socket.on("player_move", (id, x, y) => {
-  console.log("moving time")
+  console.log("moving time", id)
   let player = players[id]
   movePlayer(player, x, y)
   // draw the updated player anew
   drawPlayer(player)
 })
 
+socket.on("new_player", (player) => {
+  console.log("a new player joined", player);
+  players[player.id] = player;
+  drawPlayer(player);
+})
+
+socket.on("remove_player", (player) => {
+  console.log("removing player")
+  let tile = tiles[player.y][player.x]
+  delete players[player.id]
+  drawTile(tile)
+})
+
 socket.on("explosion", (explCoords) => {
   console.log("bruh")
-  Object.entries(explCoords).forEach(([x, y]) => {
-    // TODO tlies[y] became undefined for some reason once
-    let tile = tiles[y][x]
+  explCoords.forEach((coord) => {
+    let tile = tiles[coord.y][coord.x]
     tile.isDeadly = true
+    tile.item = "empty"
     drawTile(tile)
   })
 })
 
 socket.on("made_not_deadly", (explCoords) => {
   console.log("made: ", explCoords)
-  Object.entries(explCoords).forEach(([x, y]) => {
-    let tile = tiles[y][x]
+  explCoords.forEach((coord) => {
+    let tile = tiles[coord.y][coord.x]
     console.log("falsing")
     tile.isDeadly = false
     drawTile(tile)
   })
+})
+
+socket.on("powerup", (type, x ,y) => {
+  let tile = tiles[y][x]
+  tile.item = type;
+  drawTile(tile);
 })
 
 function drawGameState() {
@@ -67,19 +86,50 @@ function drawGameState() {
 
 function drawTile(tile) {
   let tileType = tile.item;
-  if(tileType === "empty") {
-    ctx.fillStyle = "black";
-    
-  } else if (tileType === "barrel"){
-    ctx.fillStyle = "brown";
-    
-  } else if (tileType === "wall") {
-    ctx.fillStyle = "gray";
+  let shape;
+
+  switch (tileType) {
+    case "empty":
+      shape = "box";
+      ctx.fillStyle = "black";
+      break;
+    case "barrel":
+      shape = "box";
+      ctx.fillStyle = "brown";
+      break;
+    case "wall":
+      shape = "box";
+      ctx.fillStyle = "gray";
+      break;
+    case "0":
+      shape = 'circle';
+      ctx.fillStyle = "green";
+      break;
+    case "1":
+      shape ="circle"
+      ctx.fillStyle = "blue";
+      break;
+    case "2":
+      shape = "circle"
+      ctx.fillStyle = "orange";
+      break;
+    default:
+      console.log("uhoh unrecogniable tile", tileType);
+      break;
+      
   }
-  if (tile.isDeadly) {
-    ctx.fillStyle = "red";
+
+  if (shape === "box") {
+    if (tile.isDeadly) {
+      ctx.fillStyle = "red";
+    }
+    ctx.fillRect(tile.x * tileWidth, tile.y * tileHeight, tileWidth, tileHeight); 
   }
-  ctx.fillRect(tile.x * tileWidth, tile.y * tileHeight, tileWidth, tileHeight);   
+  else if (shape === "circle") {
+    ctx.beginPath();
+    ctx.arc((tile.x * tileWidth) + (tileWidth / 2), (tile.y * tileHeight) + (tileHeight / 2), tileWidth / 5, 0, 2 * Math.PI);
+    ctx.fill();
+  } 
 }
 
 function drawPlayer(player) {
