@@ -15,6 +15,9 @@ class Tile {
   stopDeadly(ownerId) {
     if (ownerId === this.explosionOwnerId) {
       this.deadly = false;
+      return true;
+    } else {
+      return false;
     }
   }
 

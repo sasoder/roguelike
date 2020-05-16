@@ -32,3 +32,14 @@ async function newConnection(socket) {
     let gameState = game.getGameState();
     socket.emit('game_state', gameState);
 }
+
+exports.movePlayer = (id, newX, newY) => {
+    exports.io.emit("player_move", id, newX, newY)
+}
+exports.explosion = (explCoords) => {
+    exports.io.emit("explosion", explCoords)
+}
+exports.madeNotDeadly = (explCoords) => {
+    console.log("socky")
+    exports.io.emit("made_not_deadly", explCoords)
+}

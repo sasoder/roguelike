@@ -23,15 +23,38 @@ socket.on("game_state", (initState) => {
 });
 
 socket.on("player_move", (id, x, y) => {
-  
-  // TODO call drawplaer
+  console.log("moving time")
+  let player = players[id]
+  movePlayer(player, x, y)
+  // draw the updated player anew
+  drawPlayer(player)
+})
+
+socket.on("explosion", (explCoords) => {
+  console.log("bruh")
+  Object.entries(explCoords).forEach(([x, y]) => {
+    // TODO tlies[y] became undefined for some reason once
+    let tile = tiles[y][x]
+    tile.isDeadly = true
+    drawTile(tile)
+  })
+})
+
+socket.on("made_not_deadly", (explCoords) => {
+  console.log("made: ", explCoords)
+  Object.entries(explCoords).forEach(([x, y]) => {
+    let tile = tiles[y][x]
+    console.log("falsing")
+    tile.isDeadly = false
+    drawTile(tile)
+  })
 })
 
 function drawGameState() {
   // DRAW TILES
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
-      let tile = tiles[y][x];
+      let tile = tiles[y][x]
       drawTile(tile)
     } 
   }
@@ -66,14 +89,21 @@ function drawPlayer(player) {
     ctx.fill();
 }
 
+function movePlayer(player, newX, newY) {
+  // "draw over" the previous player's tile
+  drawTile(tiles[player.y][player.x])
+  player.x = newX
+  player.y = newY
+}
+
 
 
 
 document.addEventListener('keydown', function(event) {
   let keyCodes = {
       space: 32,
-      up: 38,
       left: 37,
+      up: 38,
       right: 39,
       down: 40,
   }

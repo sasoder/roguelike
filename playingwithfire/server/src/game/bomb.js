@@ -1,4 +1,5 @@
 const Item = require('./item');
+const sockets = require("./../sockets.js");
 
 class Bomb extends Item {
   constructor(owner) {
@@ -13,14 +14,23 @@ class Bomb extends Item {
     const explCoords = this.findExplosionTiles(gameBoard, players);
     console.log('woah explosion!!!');
     // TODO: emit explosion
+    sockets.explosion(explCoords);
+    console.log(explCoords)
     // clean up explosions
+    let madeNotDeadly = {}
     setTimeout(() => {
       explCoords.forEach((coord) => {
-        gameBoard[coord.y][coord.x].stopDeadly(this.ownerId);
+        if(gameBoard[coord.y][coord.x].stopDeadly(this.ownerId)) {
+          madeNotDeadly.push({x: coord.x, y: coord.y})
+          console.log("made not deadly")
+        }
       });
       console.log('woah explosion STOPPP');
       // TODO: emit explosion stop
+      sockets.madeNotDeadly(madeNotDeadly);
+
     }, 1000);
+    // TODO check if any players die
   }
 
 
@@ -28,7 +38,7 @@ class Bomb extends Item {
     const explCoords = [{ x: this.x, y: this.y }];
 
     // GOING LEFT FROM THE BOMB ORIGIN
-    for (let { y } = this; y >= this.y - this.strength; y -= 1) {
+    for (let y = this.y - 1; y >= Math.max(this.y - this.strength, 0); y -= 1) {
       const tile = gameBoard[y][this.x];
       if (tile.isEmpty()) {
         tile.makeDeadly(this.owner);
@@ -42,7 +52,7 @@ class Bomb extends Item {
     }
 
     // GOING RIGHT FROM THE BOMB ORIGIN
-    for (let { y } = this; y <= this.y + this.strength; y += 1) {
+    for (let y = this.y + 1; y <= Math.min(this.y + this.strength, gameBoard.length); y += 1) {
       const tile = gameBoard[y][this.x];
       if (tile.isEmpty()) {
         explCoords.push({ x: tile.x, y: tile.y });
@@ -55,12 +65,12 @@ class Bomb extends Item {
     }
 
     // GOING UP FROM THE BOMB ORIGIN
-    for (let { x } = this; x >= this.x - this.strength; x -= 1) {
+    for (let x = this.x - 1; x >= Math.max(this.x - this.strength, 0); x -= 1) {
       const tile = gameBoard[this.y][x];
       if (tile.isEmpty()) {
         explCoords.push({ x: tile.x, y: tile.y });
       } else if (tile.getItem() === 'barrel') {
-        explCoords.push([tile.x, tile.y]);
+        explCoords.push({x: tile.x, y: tile.y});
         break;
       } else if (tile.getItem() === 'wall') {
         break;
@@ -68,7 +78,7 @@ class Bomb extends Item {
     }
 
     // GOING DOWN FROM THE BOMB ORIGIN
-    for (let { x } = this; x <= this.x + this.strength; x += 1) {
+    for (let x = this.x + 1; x <= Math.min(this.x + this.strength, gameBoard[0].length); x += 1) {
       const tile = gameBoard[this.y][x];
       if (tile.isEmpty()) {
         explCoords.push({ x: tile.x, y: tile.y });

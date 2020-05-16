@@ -3,7 +3,6 @@ const Player = require('./player');
 const Powerup = require('./powerup');
 const Bomb = require('./bomb');
 
-// TODO uhhhh
 const sockets = require("./../sockets.js");
 const playerColors = ["aliceblue", "purple", "yellow", "blue", "green", "cyan"]
 let nextPlayerId = 0
@@ -91,10 +90,10 @@ class Game {
 
     // Calculate new coords
     const newCoords = { x: player.x, y: player.y };
-    if (direction === 'up') newCoords.y += 1;
+    if (direction === 'up') newCoords.y -= 1;
     else if (direction === 'left') newCoords.x -= 1;
     else if (direction === 'right') newCoords.x += 1;
-    else newCoords.y -= 1;
+    else newCoords.y += 1;
 
     // Check if another player is obstructing movement
     const playerInTheWay = Object.entries(this.players).some((_, p) => {
@@ -111,9 +110,10 @@ class Game {
     // Check if tile is free to move to
     const tile = this.tiles[newCoords.y][newCoords.x];
     if (tile.isEmpty()) {
+      // emitting before change occurs so we have a reference to the previous tile for drawing purposes
+      sockets.movePlayer(player.id, newCoords.x, newCoords.y)
       player.x = newCoords.x;
       player.y = newCoords.y;
-      // TODO: emit
     } else if (tile.getItem() instanceof Powerup) {
       player.addPowerup(this.getItem().getType());
       player.x = newCoords.x;
@@ -138,12 +138,19 @@ class Game {
 
   findEmptyTile(onlyEdgeTiles) {
     const empties = this.tiles.reduce((acc, row) => acc.concat(row))
-      .filter((tile) => (tile.isEmpty() && (onlyEdgeTiles ? this.isNextToEdge(tile) : true)));
+      .filter((tile) => (tile.isEmpty() && (onlyEdgeTiles ? this.isNextToEdge(tile) : true) && !this.isPlayerHere(tile)));
     return empties[Math.floor(Math.random() * empties.length)];
   }
 
   isNextToEdge(item) {
-    return item.x === this.width - 1 || item.x === 1 || item.y === this.height - 1 || item.y === 1;
+    return item.x === this.width - 2 || item.x === 1 || item.y === this.height - 2 || item.y === 1;
+  }
+
+  // check whether or not there's a player on the tile
+  isPlayerHere(tile) {
+    return Object.entries(this.players).some(([_, player]) => {
+      player.x === tile.x && player.y === tile.y;
+    })
   }
 
   populateTilesWithBarrels() {
