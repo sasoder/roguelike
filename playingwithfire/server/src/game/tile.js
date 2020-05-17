@@ -6,7 +6,6 @@ class Tile extends Item {
     this.item = item;
     this.deadly = false;
     this.explosionId = null;
-    this.possiblePowerups = [0, 1, 2]
   }
 
   // make tile deadly to step on for players
@@ -41,7 +40,7 @@ class Tile extends Item {
 
   // returns a random powerup (called when barrel of item is destroyed by explosion)
   setRandomPowerup() {
-    if(Math.random() < 1 / 4) {
+    if(Math.random() < 1 / 3) {
       this.item = Math.floor(Math.random() * 3);
     } else {
       this.item = "empty";

@@ -5,7 +5,6 @@ const Bomb = require('./bomb');
 
 const sockets = require("./../sockets.js");
 const playerColors = ["aliceblue", "purple", "yellow", "blue", "green", "cyan"]
-let nextPlayerId = 0
 
 class Game {
   constructor() {
@@ -15,6 +14,7 @@ class Game {
     this.height = 15;
     this.initGame()
     this.isActive = false;
+    this.nextPlayerId = 0
   }
 
   // sets up the base of the game with gameboard
@@ -33,7 +33,13 @@ class Game {
   }
 
   startGame() {
-    this.isActive = true
+    // check if only one person in game
+    this.isActive = true;
+    let players = Object.entries(this.players);
+    console.log("Started new game with", players.length, "players");
+    if(players.length === 1) {
+      sockets.gameOver(players[0][1].id);
+    }
   }
 
   // returns info about the players and tiles in the current game
@@ -69,8 +75,8 @@ class Game {
 
   // increments the public id of the player that they are identified by from the clients
   get getNextId(){
-    let nextId = nextPlayerId;
-    nextPlayerId +=1;
+    let nextId = this.nextPlayerId;
+    this.nextPlayerId +=1;
     return nextId;
   }
 
@@ -89,6 +95,9 @@ class Game {
     let alivePlayers = Object.entries(this.players).filter(([_, p]) => p.isAlive);
     if (alivePlayers.length === 1) {
       sockets.gameOver(alivePlayers[0][1].id);
+      return;
+    } else if (alivePlayers.length === 0) {
+      sockets.gameOver(-1);
       return;
     }
     delete this.players.id;
@@ -116,7 +125,7 @@ class Game {
     if (direction === 'up') newCoords.y -= 1;
     else if (direction === 'left') newCoords.x -= 1;
     else if (direction === 'right') newCoords.x += 1;
-    else newCoords.y += 1;
+    else if (directio === 'down') newCoords.y += 1;
 
     // Check if another player is obstructing movement
     const playerInTheWay = Object.entries(this.players).some(([_, p]) => {
@@ -195,7 +204,9 @@ class Game {
         // checking if there's already something there
         // (for example if we hardcode a level with walls spread out)
         if (this.tiles[y][x].isEmpty()) {
-          this.tiles[y][x].setItem('barrel');
+          if(Math.random() > 1/4) {
+            this.tiles[y][x].setItem('barrel');
+          }
         }
       }
     }
