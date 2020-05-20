@@ -125,7 +125,7 @@ class Game {
     if (direction === 'up') newCoords.y -= 1;
     else if (direction === 'left') newCoords.x -= 1;
     else if (direction === 'right') newCoords.x += 1;
-    else if (directio === 'down') newCoords.y += 1;
+    else if (direction === 'down') newCoords.y += 1;
 
     // Check if another player is obstructing movement
     const playerInTheWay = Object.entries(this.players).some(([_, p]) => {
@@ -162,6 +162,7 @@ class Game {
     if (!this.isActive) return;
 
     let player = this.players[id]
+    if(player == undefined) return;
     if (!player.isAlive) return;
 
     if (player.amtBombs > 0) {
